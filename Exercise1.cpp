@@ -1,56 +1,15 @@
-﻿#include <iostream>
+#include <iostream>
+#include <vector>
+#include <queue>
 using namespace std;
 struct Node {
-    int key;
+    int val;
     Node* left;
     Node* right;
     int height;
-};
-struct Queue {
-    Node* key;
-    Queue* next;
-};
-Queue* newQueue(Node* val) {
-    Queue* temp = new Queue;
-    temp->key = val;
-    temp->next = NULL;
-    return temp;
-}
-void push(Queue*& q, Node* val) {
-    if (!q) {
-        q = newQueue(val);
-    }
-    else {
-        push(q->next, val);
-    }
-}
-void pop(Queue*& q) {
-    Queue* temp = q;
-    q = q->next;
-    delete temp;
-}
-Node* front(Queue* q) {
-    if (q) {
-        return q->key;
-    }
-    return NULL;
-}
-bool isEmpty(Queue* q) {
-    return q == NULL;
-}
-int size(Queue* q) {
-    if (!q) return 0;
-    return 1 + size(q->next);
-}
 
-Node* newNode(int data) {
-    Node* temp = new Node;
-    temp->key = data;
-    temp->left = NULL;
-    temp->right = NULL;
-    temp->height = 1;
-    return temp;
-}
+    Node(int v): val(v), left(nullptr), right(nullptr), height(1){}
+};
 int max(int a, int b) {
     if (a >= b) return a;
     return b;
@@ -98,163 +57,77 @@ Node* RotateRL(Node* root) {
 }
 Node* insertNode(Node* root, int data) {
     if (!root) {
-        return newNode(data);
+        return new Node(data);
     }
-    if (root->key > data) {
+    if (root->val > data) {
         root->left = insertNode(root->left, data);
     }
-    else if (root->key < data) {
+    else if (root->val < data) {
         root->right = insertNode(root->right, data);
     }
     else return root;
     updateHeight(root);
     int bal = getBalance(root);
     if (bal < -1) {
-        if (data > root->right->key) {
+        if (data > root->right->val) {
             return RotateRR(root);
         }
         else return RotateRL(root);
     }
     else if (bal > 1) {
-        if (data < root->left->key) {
+        if (data < root->left->val) {
             return RotateLL(root);
         }
         else return RotateLR(root);
     }
     return root;
 }
-Node* searchNode(Node* root, int data) {
-    if (!root) return NULL;
-    if (root->key == data) return root;
-    else if (root->key > data) {
-        return searchNode(root->left, data);
+bool findPath(Node* root, int val, vector<int>& path) {
+    if (!root) return false;
+    path.push_back(root->val);
+    if (root->val > val) {
+        return findPath(root->left, val, path);
     }
-    else return searchNode(root->right, data);
+    else if (root->val < val) {
+        return findPath(root->right, val, path);
+    }
+    else return true;
 }
-Node* deleteNode(Node* root, int data) {
-    if (!root) return root;
-    if (root->key < data) {
-        root->right = deleteNode(root->right, data);
+int findLCA(Node* root, int p, int q) {
+    vector<int>pathP, pathQ;
+    if (!findPath(root, p, pathP)) return 0;
+    if (!findPath(root, q, pathQ)) return 0;
+
+    int idx = 0;
+    while (pathP[idx] == pathQ[idx]) {
+        idx++;
     }
-    else if (root->key > data) {
-        root->left = deleteNode(root->left, data);
-    }
-    else {
-        if (!root->left || !root->right) {
-            Node* temp = root;
-            if (root->left) {
-                root = root->left;
-            }
-            else root = root->right;
-            delete temp;
-        }
-        else {
-            Node* temp = root->left;
-            while (temp->right) {
-                temp = temp->right;
-            }
-            root->key = temp->key;
-            root->left = deleteNode(root->left, temp->key);
-        }
-    }
-    if (!root) return root;
-    updateHeight(root);
-    int bal = getBalance(root);
-    if (bal < -1) {
-        if (getBalance(root->right) <= 0) {
-            root = RotateRR(root);
-        }
-        else root = RotateRL(root);
-    }
-    else if (bal > 1) {
-        if (getBalance(root->left) >= 0) {
-            root = RotateLL(root);
-        }
-        else root = RotateLR(root);
-    }
-    return root;
+    return pathP[idx-1];
 }
-void NLR(Node* root) {
-    if (root) {
-        cout << root->key << " ";
-        NLR(root->left);
-        NLR(root->right);
-    }
-}
-void LNR(Node* root) {
-    if (root) {
-        LNR(root->left);
-        cout << root->key << " ";
-        LNR(root->right);
-    }
-}
-void LRN(Node* root) {
-    if (root) {
-        LRN(root->left);
-        LRN(root->right);
-        cout << root->key << " ";
-    }
-}
-void LevelOrder(Node* root) {
-    if (!root) {
-        cout << "NULL" << endl;
-        return;
-    }
-    Queue* q = NULL;
-    push(q, root);
-    while (!isEmpty(q)) {
-        int n = size(q);
-        for (int i = 1; i <= n; i++) {
-            Node* cur = front(q);
-            pop(q);
-            if (cur) {
-                cout << cur->key << " ";
-                if (cur->left) {
-                    push(q, cur->left);
-                }
-                if (cur->right) {
-                    push(q, cur->right);
-                }
-            }
-        }
-    }
+void deleteTree(Node* root) {
+    if (!root) return;
+    deleteTree(root->left);
+    deleteTree(root->right);
+    delete root;
 }
 int main()
 {
-    Node* root = NULL;
-    root = insertNode(root, 2);
-    root = insertNode(root, 1);
-    root = insertNode(root, 0);
-    root = insertNode(root, 3);
-    root = insertNode(root, 4);
-    root = insertNode(root, 5);
-    root = insertNode(root, 6);
-
-    NLR(root);
-    cout << endl;
-    LNR(root);
-    cout << endl;
-    LRN(root);
-    cout << endl;
-    LevelOrder(root);
-    cout << endl;
-
-    Node* res = searchNode(root, 5);
-    if (res) {
-        cout << "FOUND!!!" << endl;
+    int n;
+    cin >> n;
+    vector<int>values(n);
+    for (int i = 0; i < n; i++) {
+        cin >> values[i];
     }
-    else cout << "NOT FOUND!!!" << endl;
-    res = searchNode(root, 7);
-    if (res) {
-        cout << "FOUND!!!" << endl;
+    int p, q;
+    cin >> p >> q;
+    Node* root = nullptr;
+    for (int val : values) {
+        root = insertNode(root, val);
     }
-    else cout << "NOT FOUND!!!" << endl;
+    
+    int lca = findLCA(root, p, q);
+    cout << lca << endl;
 
-    root = deleteNode(root, 3);
-    root = deleteNode(root, 1);
-    root = deleteNode(root, 0);
-    LevelOrder(root);
-    cout << endl;
-
+    deleteTree(root);
     return 0;
 }

@@ -1,91 +1,108 @@
-﻿#include <iostream>
-#include <string>
+#include <iostream>
 #include <vector>
+#include <utility>
 using namespace std;
+
+struct Entry {
+    int key;
+    int value;
+    bool occupied;
+
+    Entry() {
+        key = -1;
+        value = -1;
+        occupied = false;
+    }
+};
+
 class HashTable {
-private: 
-    struct Entry {
-        string key = "";
-        int value = 0;
-        bool isOccupied = false;
-    };
-    vector<Entry>table;
-    int size;
-    int hashFunction(const string& key) {
-        int sum = 0;
-        for (char c : key) {
-            sum += c;
-        }
-        return sum % size;
+private:
+    vector<Entry> table;
+    int capacity;
+
+    int hash(int key) const {
+        return key % capacity;
     }
+
+    void insertToTable(vector<Entry>& targetTable, int newCapacity, int key, int value) {
+        int i = key % newCapacity;
+
+        Entry newEntry{ key, value, true };
+
+        while (targetTable[i].occupied) {
+            swap(newEntry, targetTable[i]);
+            i = (i + 1) % newCapacity;
+        }
+
+        targetTable[i] = newEntry;
+    }
+
 public:
-    HashTable(int tableSize) : size(tableSize) {
-        table.resize(size);
+    HashTable(int size = 10) {
+        capacity = size;
+        table.resize(capacity);
     }
-    bool insert(const string& key, int value) {
-        int idx = hashFunction(key);
-        int originalIdx = idx;
-        while (table[idx].isOccupied && table[idx].key!=table[idx].key) {
-            idx = (idx + 1) % size;
-            if (idx == originalIdx) {
-                cout << "Table is full" << endl;
-                return false;
+
+    void insertLCFS(int key, int value) {
+        if (loadFactor() > 0.7) {
+            resize(capacity * 2); // tự động resize nếu vượt ngưỡng
+        }
+
+        int i = hash(key);
+        Entry newEntry{ key, value, true };
+
+        while (table[i].occupied) {
+            swap(newEntry, table[i]);
+            i = (i + 1) % capacity;
+        }
+
+        table[i] = newEntry;
+    }
+
+    void resize(int newCapacity) {
+        vector<Entry> oldTable = table;
+        table = vector<Entry>(newCapacity);
+        capacity = newCapacity;
+
+        for (const auto& entry : oldTable) {
+            if (entry.occupied) {
+                insertToTable(table, capacity, entry.key, entry.value);
             }
         }
-        table[idx].key = key;
-        table[idx].value = value;
-        table[idx].isOccupied = true;
     }
-    bool search(const string& key, int& value) {
-        int idx = hashFunction(key);
-        int originalIdx = idx;
-        while (table[idx].isOccupied) {
-            if (table[idx].key == key) {
-                value = table[idx].value;
-                return true;
-            }
-            idx = (idx + 1) % size;
-            if (idx == originalIdx) break;
-        }
-        return false;
+
+    double loadFactor() const {
+        int count = 0;
+        for (const auto& entry : table)
+            if (entry.occupied) count++;
+        return (double)count / capacity;
     }
-    void print() {
-        for (int i = 0; i < size; i++) {
-            if (table[i].isOccupied) {
-                cout << i << ": " << table[i].key << " -> " << table[i].value << endl;
-            }
-            else {
-                cout << i << ": Empty" << endl;
-            }
+
+    void display() {
+        cout << "Index | Key | Value\n";
+        for (int i = 0; i < capacity; ++i) {
+            cout << "  " << i << "   | ";
+            if (table[i].occupied)
+                cout << table[i].key << "   | " << table[i].value;
+            else
+                cout << "EMPTY";
+            cout << endl;
         }
     }
 };
-int main()
-{
-    HashTable ht(10);
-    ht.insert("apple", 5);
-    ht.insert("banana", 8);
-    ht.insert("cherry", 3);
-    ht.insert("date", 12);
-    ht.insert("grape", 10);
-    ht.insert("lemon", 7);
 
-    cout << "Hash Table Contents: " << endl;
-    ht.print();
-    cout << "\nLookup Operations:" << endl;
-    int value;
-    if (ht.search("banana", value)) {
-        cout << "Found banana with value " << value << endl;
-    }
-    else {
-        cout << "Could not find banana" << endl;
-    }
-    if (ht.search("kiwi", value)) {
-        cout << "Found kiwi with value " << value << endl;
-    }
-    else {
-        cout << "Could not find kiwi" << endl;
-    }
+int main() {
+    HashTable ht(5);
+
+    ht.insertLCFS(5, 100);
+    ht.insertLCFS(15, 200);
+    ht.insertLCFS(25, 300);
+    ht.insertLCFS(35, 400); // gây ra va chạm và resize
+
+    cout << "\nSau khi chèn và resize:\n";
+    ht.display();
+
     return 0;
 }
+
 

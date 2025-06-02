@@ -83,3 +83,73 @@ int main()
     g.primMST();
     return 0;
 }
+//#include <iostream>
+//#include <vector>
+//#include <queue>
+//#include <utility>  // for pair
+//#include <functional>  // for greater
+//using namespace std;
+//
+//const int MAXN = 1000;
+//vector<pair<int, int>> adj[MAXN]; // adj[u] = {v, weight}
+//vector<bool> visited;
+//vector<tuple<int, int, int>> mstEdges; // lưu các cạnh trong MST: {u, v, weight}
+//typedef pair<int, int> Edge; // {weight, to}
+//
+//// Hàm thêm cạnh vào đồ thị
+//void addEdge(int u, int v, int w) {
+//    adj[u].push_back({ v, w });
+//    adj[v].push_back({ u, w }); // vì là đồ thị vô hướng
+//}
+//
+//// Lazy Prim's Algorithm có lưu cạnh
+//int lazyPrim(int start, int n) {
+//    visited.assign(n, false);
+//    mstEdges.clear();
+//    priority_queue<tuple<int, int, int>, vector<tuple<int, int, int>>, greater<>> pq;
+//    int mst_weight = 0;
+//
+//    visited[start] = true;
+//    for (auto [v, w] : adj[start]) {
+//        pq.push({ w, start, v }); // push cạnh (w, from, to)
+//    }
+//
+//    while (!pq.empty()) {
+//        auto [w, from, to] = pq.top(); pq.pop();
+//        if (visited[to]) continue;
+//
+//        // Đánh dấu và thêm cạnh vào MST
+//        visited[to] = true;
+//        mst_weight += w;
+//        mstEdges.push_back({ from, to, w });
+//
+//        // Push các cạnh mới từ 'to'
+//        for (auto [v, weight] : adj[to]) {
+//            if (!visited[v]) {
+//                pq.push({ weight, to, v });
+//            }
+//        }
+//    }
+//
+//    return mst_weight;
+//}
+//
+//int main() {
+//    int n = 5;
+//    addEdge(0, 1, 2);
+//    addEdge(0, 3, 6);
+//    addEdge(1, 2, 3);
+//    addEdge(1, 3, 8);
+//    addEdge(1, 4, 5);
+//    addEdge(2, 4, 7);
+//    addEdge(3, 4, 9);
+//
+//    int totalWeight = lazyPrim(0, n);
+//    cout << "Total weight of MST: " << totalWeight << endl;
+//    cout << "Edges in MST:\n";
+//    for (auto [u, v, w] : mstEdges) {
+//        cout << u << " - " << v << " (weight = " << w << ")\n";
+//    }
+//
+//    return 0;
+//}
